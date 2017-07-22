@@ -25,11 +25,15 @@ describe('Persistent Node Chat Server', function() {
     });
     dbConnection.connect();
 
-    var tablename = 'messages'; // TODO: fill this out
+    // var tablename = 'messages'; // TODO: fill this out
 
     /* Empty the db table before each test so that multiple tests
      * (or repeated runs of the tests) won't screw each other up: */
-    dbConnection.query('truncate ' + tablename, done);
+    dbConnection.query('truncate ' + 'messages');
+    dbConnection.query('SET FOREIGN_KEY_CHECKS = 0;');
+    dbConnection.query('TRUNCATE users');
+    dbConnection.query('SET FOREIGN_KEY_CHECKS = 1;', done);
+    // dbConnection.query('truncate ' + 'users', done);
   });
 
   afterEach(function() {
@@ -59,10 +63,17 @@ describe('Persistent Node Chat Server', function() {
       roomname: 'Hello'
     };
     var callBack = function(err, results) {
-      console.log(results);
+      return;
     };
-    models.messages.create(callBack, messageBody);
-    models.messages.read(callBack);
+    var createCB = function(err, results) {
+      expect(results.affectedRows).to.equal(1);
+    };
+    var readCB = function(err, results) {
+      expect(results[0].message).to.equal('In mercy\'s name, three days is all I need.');
+    };
+    models.users.create(callBack, messageBody);
+    models.messages.create(createCB, messageBody);
+    models.messages.read(readCB);
   });
 
   it('Should insert posted messages to the DB', function(done) {

@@ -1,6 +1,6 @@
-CREATE DATABASE IF NOT EXISTS chatter;
+CREATE DATABASE IF NOT EXISTS chat;
 
-USE chatter;
+USE chat;
 
 CREATE TABLE IF NOT EXISTS users (
   id integer primary key auto_increment,
