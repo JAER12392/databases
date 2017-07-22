@@ -1,14 +1,21 @@
-CREATE DATABASE chat;
+CREATE DATABASE IF NOT EXISTS chatter;
 
-USE chat;
+USE chatter;
 
-CREATE TABLE messages (
-  /* Describe your table here.*/
+CREATE TABLE IF NOT EXISTS users (
+  id integer primary key auto_increment,
+  username char(20) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+  id integer primary key auto_increment,
+  room text,
+  message char(140) not null,
+  author integer not null,
+  FOREIGN KEY (author) REFERENCES users(id) 
 );
 
 /* Create other tables and define schemas for them here! */
-
-
 
 
 /*  Execute this file from the command line by typing:

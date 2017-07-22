@@ -4,19 +4,28 @@
 var mysql = require('mysql');
 var request = require('request'); // You might need to npm install the request module!
 var expect = require('chai').expect;
+var db = require('../db');
+var models = require('../models');
 
 describe('Persistent Node Chat Server', function() {
   var dbConnection;
 
+  it('Should connect to DB', function() {
+    db.dbConnection.query('DESCRIBE messages', [], function(err, results) { 
+      expect(results[2].Field === 'message');
+    });
+  });
+
+  
   beforeEach(function(done) {
     dbConnection = mysql.createConnection({
       user: 'root',
-      password: '',
+      password: 'plantlife',
       database: 'chat'
     });
     dbConnection.connect();
 
-       var tablename = ""; // TODO: fill this out
+    var tablename = 'messages'; // TODO: fill this out
 
     /* Empty the db table before each test so that multiple tests
      * (or repeated runs of the tests) won't screw each other up: */
@@ -25,6 +34,35 @@ describe('Persistent Node Chat Server', function() {
 
   afterEach(function() {
     dbConnection.end();
+  });
+  
+  it('Should insert into and read from users table', function() {
+    var messageBody = {
+      username: 'Valjean',
+      message: 'In mercy\'s name, three days is all I need.',
+      roomname: 'Hello'
+    };
+    var createCB = function(err, results) {
+      expect(results.affectedRows).to.equal(1);
+    };
+    var readCB = function(err, results) {
+      expect(results[0].username).to.equal('Valjean');
+    };
+    models.users.create(createCB, messageBody);
+    models.users.read(readCB);
+  });
+
+  it('Should insert into and read from messages table in database', function() {
+    var messageBody = {
+      username: 'Valjean',
+      message: 'In mercy\'s name, three days is all I need.',
+      roomname: 'Hello'
+    };
+    var callBack = function(err, results) {
+      console.log(results);
+    };
+    models.messages.create(callBack, messageBody);
+    models.messages.read(callBack);
   });
 
   it('Should insert posted messages to the DB', function(done) {
@@ -57,7 +95,7 @@ describe('Persistent Node Chat Server', function() {
           expect(results.length).to.equal(1);
 
           // TODO: If you don't have a column named text, change this test.
-          expect(results[0].text).to.equal('In mercy\'s name, three days is all I need.');
+          expect(results[0].message).to.equal('In mercy\'s name, three days is all I need.');
 
           done();
         });
@@ -67,8 +105,8 @@ describe('Persistent Node Chat Server', function() {
 
   it('Should output all messages from the DB', function(done) {
     // Let's insert a message into the db
-       var queryString = "";
-       var queryArgs = [];
+    var queryString = '';
+    var queryArgs = [];
     // TODO - The exact query string and query args to use
     // here depend on the schema you design, so I'll leave
     // them up to you. */
@@ -80,8 +118,8 @@ describe('Persistent Node Chat Server', function() {
       // the message we just inserted:
       request('http://127.0.0.1:3000/classes/messages', function(error, response, body) {
         var messageLog = JSON.parse(body);
-        expect(messageLog[0].text).to.equal('Men like you can never change!');
-        expect(messageLog[0].roomname).to.equal('main');
+        expect(messageLog[0].message).to.equal('Men like you can never change!');
+        expect(messageLog[0].room).to.equal('main');
         done();
       });
     });
